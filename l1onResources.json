@@ -1,8 +1,22 @@
 {
-  "repo_url": "your_repo_url",
-  "destination_path": "resources",
-  "temp_directory": "newFolder",
-  "project_name": "folder name to copy",
-  "delete_temp_dir_after_done": false,
-  "purge_destination_before_copy": false
+  "projects": [
+    {
+      "project": "project_1",
+      "repo_url": "repo_url",
+      "destination_path": "destination_path_1",
+      "temp_directory": "tempFolder/project_1",
+      "project_name": "project_1",
+      "delete_temp_dir_after_done": true,
+      "purge_destination_before_copy": false
+    },
+    {
+      "project": "project_2",
+      "repo_url": "repo_url",
+      "destination_path": "destination_path_2",
+      "temp_directory": "tempFolder/project_2",
+      "project_name": "project_2",
+      "delete_temp_dir_after_done": false,
+      "purge_destination_before_copy": false
+    }
+  ]
 }

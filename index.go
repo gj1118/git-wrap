@@ -16,7 +16,11 @@ import (
 const CONFIG_FILE_NAME string = "l1onResources.json"
 
 // types
-type UserConfig struct {
+
+type Projects struct {
+	Projects []Project `json:"projects"`
+}
+type Project struct {
 	RepoURL             string `json:"repo_url"`
 	DestinationPath     string `json:"destination_path"`
 	TempDirectory       string `json:"temp_directory"`
@@ -137,9 +141,10 @@ Returns
 func createDirectoryIfNotExists(path string) bool {
 	Log("Validating if we need to create the new directory : "+path, false)
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		err := os.Mkdir(path, os.ModePerm)
+		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
 			Warning("Error while creating the directory: " + path)
+			Warning("Error: " + err.Error())
 			return false
 		}
 	}
@@ -195,9 +200,9 @@ func Warning(format string, args ...interface{}) {
 	fmt.Printf("\x1b[36;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
 }
 
-func readConfigFile() UserConfig {
+func readConfigFile() Projects {
 	Log("Will validate if the config file exists or not.", false)
-	var userConfig UserConfig
+	var projects Projects
 
 	if checkIfFileExists(CONFIG_FILE_NAME) {
 		Log("Config file exists in the current folder.", true)
@@ -211,86 +216,92 @@ func readConfigFile() UserConfig {
 
 		defer configFile.Close()
 		byteArray, _ := ioutil.ReadAll(configFile)
-		json.Unmarshal(byteArray, &userConfig)
+		json.Unmarshal(byteArray, &projects)
 
 	} else {
 		Warning("Config file does NOT exist in the current folder.")
 	}
-	return userConfig
+	return projects
 }
 
 func main() {
 	Log("Starting....", false)
-	userConfig := readConfigFile()
-	if (userConfig != UserConfig{}) {
-		//config file was successfully read and the struct was populated.
+	projects := readConfigFile()
+	if len(projects.Projects) > 0 {
 		Log("Config file was successfully read and the struct was populated.", true)
-		Log("Repo URL: "+userConfig.RepoURL, true)
-		Log("Destination Path: "+userConfig.DestinationPath, true)
-		Log("Temp Directory: "+userConfig.TempDirectory, true)
-		Log("Delete Temp Directory: "+fmt.Sprint(userConfig.DeleteTempDirectory), true)
-		Log("Project Name: "+userConfig.ProjectName, true)
-		Log("Purge Destination: "+fmt.Sprint(userConfig.PurgeDestination), true)
+		Log("There are "+fmt.Sprint(len(projects.Projects), " projects"), true)
+		for i := 0; i < len(projects.Projects); i++ {
+			project := projects.Projects[i]
+			//config file was successfully read and the struct was populated.
+			Log("Project Name: "+project.ProjectName, true)
+			Log("Repo URL: "+project.RepoURL, true)
+			Log("Destination Path: "+project.DestinationPath, true)
+			Log("Temp Directory: "+project.TempDirectory, true)
+			Log("Delete Temp Directory: "+fmt.Sprint(project.DeleteTempDirectory), true)
+			Log("Project Name: "+project.ProjectName, true)
+			Log("Purge Destination: "+fmt.Sprint(project.PurgeDestination), true)
 
-		// lets start reading the temporary directory
-		// we use this temporary directory to clone the repository
-		tempDirectoryaVal := createDirectoryIfNotExists(userConfig.TempDirectory)
-		if tempDirectoryaVal {
-			Log("Temp Directory was created successfully.", true)
-			// git clone the repository in the temp directory
-			directoryClonedSuccessFully := cloneRepository(userConfig.RepoURL, userConfig.TempDirectory)
-			if !directoryClonedSuccessFully {
-				Warning("Error while cloning the repository. Please check the logs.")
-				os.Exit(1)
-			}
-			Log("Cloned the repository successfully: "+fmt.Sprint(directoryClonedSuccessFully), true)
-			Log("Prep the copy process", false)
-			sourceDir := path.Join(userConfig.TempDirectory, userConfig.ProjectName)
-			Log("Generated  source directory: "+sourceDir, true)
-			if checkIfDirectoryExists(userConfig.DestinationPath) {
-				Log("Destination directory exists.", true)
-			} else {
-				Log("Destination directory does NOT exist. Will attempt to create the destination directory", true)
-				createDirectoryIfNotExists(userConfig.DestinationPath)
-			}
-			// check if we need to purge the destination directory first
-			if userConfig.PurgeDestination {
-				Log("Purge the destination directory", true)
-				deleteError := deleteDirectory(userConfig.DestinationPath)
-				if deleteError {
-					Log("Purging the destination directory has happened succesfully", true)
-					Log("Create the destination directory : "+userConfig.DestinationPath, true)
-					destinationPathSuccess := createDirectoryIfNotExists(userConfig.DestinationPath)
-					if destinationPathSuccess {
-						Log("Destination directory has been created", true)
-					} else {
-						Log("Destination directory could not be created : "+userConfig.DestinationPath, true)
-						os.Exit(1)
-					}
-				} else {
-					Warning("Error while purging the destination directory")
+			// lets start reading the temporary directory
+			// we use this temporary directory to clone the repository
+			tempDirectoryaVal := createDirectoryIfNotExists(project.TempDirectory)
+			if tempDirectoryaVal {
+				Log("Temp Directory was created successfully.", true)
+				// git clone the repository in the temp directory
+				directoryClonedSuccessFully := cloneRepository(project.RepoURL, project.TempDirectory)
+				if !directoryClonedSuccessFully {
+					Warning("Error while cloning the repository. Please check the logs.")
 					os.Exit(1)
 				}
-			}
-			copyError := copyDir.Copy(sourceDir, userConfig.DestinationPath)
-			if copyError != nil {
-				Log("Error while copying the files: "+copyError.Error(), true)
+				Log("Cloned the repository successfully: "+fmt.Sprint(directoryClonedSuccessFully), true)
+				Log("Prep the copy process", false)
+				sourceDir := path.Join(project.TempDirectory, project.ProjectName)
+				Log("Generated  source directory: "+sourceDir, true)
+				if checkIfDirectoryExists(project.DestinationPath) {
+					Log("Destination directory exists.", true)
+				} else {
+					Log("Destination directory does NOT exist. Will attempt to create the destination directory", true)
+					createDirectoryIfNotExists(project.DestinationPath)
+				}
+				// check if we need to purge the destination directory first
+				if project.PurgeDestination {
+					Log("Purge the destination directory", true)
+					deleteError := deleteDirectory(project.DestinationPath)
+					if deleteError {
+						Log("Purging the destination directory has happened succesfully", true)
+						Log("Create the destination directory : "+project.DestinationPath, true)
+						destinationPathSuccess := createDirectoryIfNotExists(project.DestinationPath)
+						if destinationPathSuccess {
+							Log("Destination directory has been created", true)
+						} else {
+							Log("Destination directory could not be created : "+project.DestinationPath, true)
+							os.Exit(1)
+						}
+					} else {
+						Warning("Error while purging the destination directory")
+						os.Exit(1)
+					}
+				}
+				copyError := copyDir.Copy(sourceDir, project.DestinationPath)
+				if copyError != nil {
+					Log("Error while copying the files: "+copyError.Error(), true)
+					os.Exit(1)
+				}
+				Log("Files were copied successfully.", true)
+				if project.DeleteTempDirectory {
+					Log("Will now delete the directory: "+project.DestinationPath, false)
+					// lets delete the directory now
+					deleteDirectory(project.TempDirectory)
+				} else {
+					Log("Directory cleanup will not happen", false)
+				}
+				Log("Finished processing the project: "+project.ProjectName, false)
+			} else {
+				Warning("Temp Directory was NOT created successfully, aborting!")
 				os.Exit(1)
 			}
-			Log("Files were copied successfully.", true)
-			if userConfig.DeleteTempDirectory {
-				Log("Will now delete the directory: "+userConfig.DestinationPath, false)
-				// lets delete the directory now
-				deleteDirectory(userConfig.TempDirectory)
-			} else {
-				Log("Directory cleanup will not happen", false)
-			}
-			Log("All done. Exiting now.", false)
-			os.Exit(0)
-		} else {
-			Warning("Temp Directory was NOT created successfully, aborting!")
-			os.Exit(1)
 		}
+		Log("All done. Exiting now.", false)
+		os.Exit(0)
 	} else {
 		//config file was not read successfully.
 		//exit, preserve some dignity.
