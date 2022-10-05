@@ -1,20 +1,20 @@
 {
   "projects": [
     {
-      "project": "project_1",
-      "repo_url": "repo_url",
-      "destination_path": "destination_path_1",
-      "temp_directory": "tempFolder/project_1",
-      "project_name": "project_1",
+      "project": "wss",
+      "repo_url": "git@github.int.mcafee.com:mcafee/CoreUI-L10N.git",
+      "destination_path": "/Users/gjanjua/sandbox/code/corp/polaris/src/ui-apps/wss-main-app/app_components/wss-ng-content/resources",
+      "temp_directory": "tempFolder/wss_l10n",
+      "project_name": "wss-main-app",
       "delete_temp_dir_after_done": true,
       "purge_destination_before_copy": false
     },
     {
-      "project": "project_2",
-      "repo_url": "repo_url",
-      "destination_path": "destination_path_2",
-      "temp_directory": "tempFolder/project_2",
-      "project_name": "project_2",
+      "project": "wps",
+      "repo_url": "git@github.int.mcafee.com:mcafee/wps-ui-l10n.git",
+      "destination_path": "/Users/gjanjua/sandbox/code/corp/CoreUI/src/ui-apps/wps-main-app/app_components/wss-ng-content/resources",
+      "temp_directory": "tempFolder/wps_l10n",
+      "project_name": "wps-main-app",
       "delete_temp_dir_after_done": false,
       "purge_destination_before_copy": false
     }

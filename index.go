@@ -10,6 +10,7 @@ import (
 	"path"
 
 	copyDir "github.com/otiai10/copy"
+	"github.com/pterm/pterm"
 )
 
 // constants
@@ -30,6 +31,19 @@ type Project struct {
 }
 
 // helpers
+
+func generateWelcomeHeader() {
+	pterm.DefaultCenter.Println("Welcome to GIT-WRAP!")
+	// Generate BigLetters
+	s, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString("GIT-WRAP")).Srender()
+	pterm.DefaultCenter.Println(s) // Print BigLetters with the default CenterPrinter
+
+	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("Please make sure that the config file , l1onResources.json, in the same directory as this executable.")
+}
+
+func generateSectionHeader(sectionHeader string) {
+	pterm.DefaultSection.Println(sectionHeader)
+}
 
 /*
 *
@@ -67,7 +81,7 @@ Returns
 *
 */
 func deleteDirectory(path string) bool {
-	Log("Deleting the directory: "+path, false)
+	Info("Deleting the directory: " + path)
 	err := os.RemoveAll(path)
 	if err != nil {
 		Warning("Error while deleting the directory: " + path)
@@ -89,13 +103,13 @@ Returns
 *
 */
 func cloneRepository(repoName string, directory string) bool {
-	Log("Cloning the repository: "+repoName, false)
+	Info("Cloning the repository: " + repoName)
 	currDirectory, _ := os.Getwd()
 	cmd := exec.Command("git", "clone", repoName, directory)
 	err := cmd.Run()
 
 	if err != nil {
-		Log("Will try doing a git pull instead of git clone", true)
+		Info("Will try doing a git pull instead of git clone")
 		os.Chdir(directory)
 		cmd := exec.Command("git", "pull")
 		err := cmd.Run()
@@ -139,7 +153,7 @@ Returns
 *
 */
 func createDirectoryIfNotExists(path string) bool {
-	Log("Validating if we need to create the new directory : "+path, false)
+	Info("Validating if we need to create the new directory : " + path)
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
@@ -182,7 +196,18 @@ func Log(message string, tab bool) {
 *
 */
 func Info(format string, args ...interface{}) {
-	fmt.Printf("\x1b[34;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+	//fmt.Printf("\x1b[34;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+	pterm.Info.Println(fmt.Sprintf(format, args...))
+}
+
+func Debug(format string, args ...interface{}) {
+	//fmt.Printf("\x1b[34;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+	pterm.Debug.Println(fmt.Sprintf(format, args...))
+}
+
+func Success(format string, args ...interface{}) {
+	//fmt.Printf("\x1b[34;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+	pterm.Success.Println(fmt.Sprintf(format, args...))
 }
 
 /*
@@ -201,11 +226,11 @@ func Warning(format string, args ...interface{}) {
 }
 
 func readConfigFile() Projects {
-	Log("Will validate if the config file exists or not.", false)
+	generateSectionHeader("Validate the config file")
 	var projects Projects
 
 	if checkIfFileExists(CONFIG_FILE_NAME) {
-		Log("Config file exists in the current folder.", true)
+		Success("Config file exists in the current folder.")
 		configFile, err := os.Open(CONFIG_FILE_NAME)
 		if err != nil {
 			// this should not happen as we have already validated that the file exists.
@@ -225,7 +250,8 @@ func readConfigFile() Projects {
 }
 
 func main() {
-	Log("Starting....", false)
+	pterm.EnableDebugMessages() // Enable debug messages
+	generateWelcomeHeader()
 	projects := readConfigFile()
 	if len(projects.Projects) > 0 {
 		Log("Config file was successfully read and the struct was populated.", true)
@@ -233,7 +259,8 @@ func main() {
 		for i := 0; i < len(projects.Projects); i++ {
 			project := projects.Projects[i]
 			//config file was successfully read and the struct was populated.
-			Log("Project Name: "+project.ProjectName, true)
+			generateSectionHeader("Project Name: " + project.ProjectName)
+
 			Log("Repo URL: "+project.RepoURL, true)
 			Log("Destination Path: "+project.DestinationPath, true)
 			Log("Temp Directory: "+project.TempDirectory, true)
@@ -245,19 +272,19 @@ func main() {
 			// we use this temporary directory to clone the repository
 			tempDirectoryaVal := createDirectoryIfNotExists(project.TempDirectory)
 			if tempDirectoryaVal {
-				Log("Temp Directory was created successfully.", true)
+				Success("Temp Directory was created successfully.")
 				// git clone the repository in the temp directory
 				directoryClonedSuccessFully := cloneRepository(project.RepoURL, project.TempDirectory)
 				if !directoryClonedSuccessFully {
 					Warning("Error while cloning the repository. Please check the logs.")
 					os.Exit(1)
 				}
-				Log("Cloned the repository successfully: "+fmt.Sprint(directoryClonedSuccessFully), true)
-				Log("Prep the copy process", false)
+				Success("Cloned the repository successfully: " + fmt.Sprint(directoryClonedSuccessFully))
+				Info("Prep the copy process")
 				sourceDir := path.Join(project.TempDirectory, project.ProjectName)
-				Log("Generated  source directory: "+sourceDir, true)
+				Success("Generated  source directory: " + sourceDir)
 				if checkIfDirectoryExists(project.DestinationPath) {
-					Log("Destination directory exists.", true)
+					Info("Destination directory exists.")
 				} else {
 					Log("Destination directory does NOT exist. Will attempt to create the destination directory", true)
 					createDirectoryIfNotExists(project.DestinationPath)
@@ -286,21 +313,21 @@ func main() {
 					Log("Error while copying the files: "+copyError.Error(), true)
 					os.Exit(1)
 				}
-				Log("Files were copied successfully.", true)
+				Success("Files were copied successfully.")
 				if project.DeleteTempDirectory {
-					Log("Will now delete the directory: "+project.DestinationPath, false)
+					Info("Will now delete the directory: " + project.DestinationPath)
 					// lets delete the directory now
 					deleteDirectory(project.TempDirectory)
 				} else {
-					Log("Directory cleanup will not happen", false)
+					Info("Directory cleanup will not happen")
 				}
-				Log("Finished processing the project: "+project.ProjectName, false)
+				Success("Finished processing the project: " + project.ProjectName)
 			} else {
 				Warning("Temp Directory was NOT created successfully, aborting!")
 				os.Exit(1)
 			}
 		}
-		Log("All done. Exiting now.", false)
+		generateSectionHeader("All done. Exiting now.")
 		os.Exit(0)
 	} else {
 		//config file was not read successfully.
