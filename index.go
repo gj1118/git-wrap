@@ -38,7 +38,7 @@ func generateWelcomeHeader() {
 	s, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString("GIT-WRAP")).Srender()
 	pterm.DefaultCenter.Println(s) // Print BigLetters with the default CenterPrinter
 
-	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("Please make sure that the config file , l1onResources.json, in the same directory as this executable.")
+	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("👋 Please make sure that the config file , l1onResources.json, in the same directory as this executable.")
 }
 
 func generateSectionHeader(sectionHeader string) {
