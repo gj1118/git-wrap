@@ -11,6 +11,7 @@ import (
 
 	copyDir "github.com/otiai10/copy"
 	"github.com/pterm/pterm"
+	"github.com/pterm/pterm/putils"
 )
 
 // constants
@@ -36,7 +37,7 @@ type Project struct {
 func generateWelcomeHeader() {
 	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("Welcome to GIT-WRAP!\n" + VERSION)
 	// Generate BigLetters
-	s, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString("GIT-WRAP")).Srender()
+	s, _ := pterm.DefaultBigText.WithLetters(putils.LettersFromString("GIT-WRAP")).Srender()
 	pterm.DefaultCenter.Println(s) // Print BigLetters with the default CenterPrinter
 
 	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("👋 Please make sure that the config file \nl1onResources.json \nis in the same directory as this executable.")
