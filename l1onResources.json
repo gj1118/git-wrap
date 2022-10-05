@@ -1,0 +1,8 @@
+{
+  "repo_url": "git@github.int.mcafee.com:mcafee/wps-ui-l10n.git",
+  "destination_path": "resources",
+  "temp_directory": "newFolder",
+  "project_name": "wps-main-app",
+  "delete_temp_dir_after_done": false,
+  "purge_destination_before_copy": false
+}
