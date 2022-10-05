@@ -15,6 +15,7 @@ import (
 
 // constants
 const CONFIG_FILE_NAME string = "l1onResources.json"
+const VERSION string = "3.0.0"
 
 // types
 
@@ -33,12 +34,12 @@ type Project struct {
 // helpers
 
 func generateWelcomeHeader() {
-	pterm.DefaultCenter.Println("Welcome to GIT-WRAP!")
+	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("Welcome to GIT-WRAP!\n" + VERSION)
 	// Generate BigLetters
 	s, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString("GIT-WRAP")).Srender()
 	pterm.DefaultCenter.Println(s) // Print BigLetters with the default CenterPrinter
 
-	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("👋 Please make sure that the config file , l1onResources.json, in the same directory as this executable.")
+	pterm.DefaultCenter.WithCenterEachLineSeparately().Println("👋 Please make sure that the config file \nl1onResources.json \nis in the same directory as this executable.")
 }
 
 func generateSectionHeader(sectionHeader string) {
