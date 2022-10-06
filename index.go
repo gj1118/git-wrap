@@ -16,7 +16,7 @@ import (
 
 // constants
 const CONFIG_FILE_NAME string = "l1onResources.json"
-const VERSION string = "3.0.0"
+const VERSION string = "4.0.0"
 
 // types
 
@@ -212,6 +212,14 @@ func Success(format string, args ...interface{}) {
 	pterm.Success.Println(fmt.Sprintf(format, args...))
 }
 
+func Error(format string, args ...interface{}) {
+	pterm.Error.Println((fmt.Sprintf(format, args...)))
+}
+
+func Fatal(format string, args ...interface{}) {
+	pterm.Fatal.Println((fmt.Sprintf(format, args...)))
+}
+
 /*
 * Our billion dollar but inbuilt Warning function
 
@@ -238,7 +246,7 @@ func readConfigFile() Projects {
 			// this should not happen as we have already validated that the file exists.
 			// not sure what to do here.
 			// but for now, we will again let the user know
-			Warning("Config file might not exist as we are not able to read it.")
+			Error("Config file might not exist as we are not able to read it.")
 		}
 
 		defer configFile.Close()
@@ -246,7 +254,7 @@ func readConfigFile() Projects {
 		json.Unmarshal(byteArray, &projects)
 
 	} else {
-		Warning("Config file does NOT exist in the current folder.")
+		Error("Config file does NOT exist in the current folder.")
 	}
 	return projects
 }
